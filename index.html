@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Media Platform</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+  <!-- Axios -->
+  <script src="./node_modules/axios/dist/axios.min.js"></script>
+  <script src="./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="./mainLogic.js"></script>
+
+  <style>
+    body {
+      background-color: rgba(250, 235, 215, 0.623);
+    }
+
+    /* Floating Add Post Button */
+    #addpost {
+      position: fixed;
+      bottom: 5%;
+      left: 9%;
+      z-index: 1000;
+      cursor: pointer;
+    }
+
+    #cards .card {
+      margin-bottom: 2rem;
+    }
+
+    .card-header img {
+      margin-right: 10px;
+    }
+
+    .card-body hr {
+      margin: 10px 0;
+    }
+
+      .card {
+        max-height: 600px;        /* ارتفاع الكارد الكلي */
+        overflow: hidden;         /* يخفي أي شيء يطلع خارج الكارد */
+        border-radius: 10px;
+    }
+
+      .card img {
+        height: 350px;            /* ارتفاع الصورة داخل الكارد */
+        width: 100%;
+        object-fit: cover;        /* يقص الصورة لتناسب الإطار دون تمديدها */
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        margin-top: 10px;
+    }
+
+  </style>
+</head>
+
+<body>
+  <!-- ================= ALERT PLACEHOLDER ================= -->
+  <div id="liveAlertPlaceholder" class="position-fixed bottom-0 end-0 p-3" style="z-index: 222;"></div>
+
+  <!-- ================= ADD POST BUTTON ================= -->
+  <div id="addpost" data-bs-toggle="modal" data-bs-target="#addPostModal">
+    <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="blue" class="bi bi-plus-circle" viewBox="0 0 16 16">
+      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+      <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+    </svg>
+  </div>
+
+  <!-- ================= NAVBAR ================= -->
+  <nav class="container col-8 navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
+    <div class="container col-8">
+      <a class="navbar-brand" href="#">LADY</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="navbar-nav me-auto">
+          <a class="nav-link active" href="#">Home</a>
+          <a class="nav-link" href="#">Profile</a>
+        </div>
+        <div class="d-flex align-items-center">
+          <img id="userProfile" src="imgs/download.png" alt="Profile" class="rounded-circle" style="width:30px; height:30px; display:none;">
+          <span id="navUserName" class="ms-2 text-primary" style="display:none;"></span>
+          <button id="loginBtn" type="button" class="btn btn-outline-primary ms-3" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+          <button id="registerBtn" type="button" class="btn btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#registerModal">Register</button>
+          <button id="logoutBtn" type="button" class="btn btn-outline-danger ms-2" style="display:none;" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================= POSTS CONTAINER ================= -->
+  <div id="cards" class="container col-8"></div>
+
+  <!-- ================= MODALS ================= -->
+  <!-- Login Modal -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Login</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" class="form-control mb-2" id="username-input" placeholder="Username">
+          <input type="password" class="form-control" id="password-input" placeholder="Password">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-primary" onclick="loginForm()">Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Register</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="file" class="form-control mb-2" id="image-input-register">
+          <input type="text" class="form-control mb-2" id="username-input-register" placeholder="Username">
+          <input type="text" class="form-control mb-2" id="name-input-register" placeholder="Full Name">
+          <input type="password" class="form-control" id="password-input-register" placeholder="Password">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-primary" onclick="registerForm()">Register</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Post Modal -->
+  <div class="modal fade" id="addPostModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Post</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" class="form-control mb-2" id="title-input" placeholder="Title">
+          <textarea class="form-control mb-2" id="body-input" placeholder="Body"></textarea>
+          <input type="file" class="form-control" id="file-input">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-primary" onclick="AddPostForm()">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    let lastPage = 1;
+    const baseUrl = "https://tarmeezacademy.com/api/v1";
+
+    // --------------------------
+    // GET POSTS (WITH PAGINATION)
+    // --------------------------
+ function getSafeProfileImage(profileImage) {
+  if (typeof profileImage === 'string' && profileImage.trim() !== '') {
+    const imageUrl = profileImage.startsWith('http') ? profileImage : baseUrl + profileImage;
+    return `<img src="${imageUrl}" class="rounded-circle me-2" style="width:30px;height:30px;" onerror="this.src='imgs/download.png'">`;
+  } else {
+    return `<img src="imgs/download.png" class="rounded-circle me-2" style="width:30px;height:30px;">`;
+  }
+}
+
+
+function getPosts(reload = true, page = 1) {
+  axios.get(`${baseUrl}/posts?limit=4&page=${page}`)
+    .then((response) => {
+      const posts = response.data.data;
+      lastPage = response.data.meta.last_page;
+
+      if (reload) document.getElementById("cards").innerHTML = "";
+
+      posts.forEach((post) => {
+        const author = post.author || {}; // حماية من undefined
+        const profileImage = getSafeProfileImage(author.profile_image);
+
+        const postImage = (post.image && typeof post.image === 'string' && post.image.trim() !== '')
+          ? `<img src="${post.image}" class="card-img-top mb-2 container" onerror="this.src='imgs/download.png'">`
+          : '';
+
+        const postHtml = `
+          <div class="card mb-4" onclick="postClicked(${post.id})" style="cursor: pointer">
+            <div class="card-header d-flex align-items-center">
+              ${profileImage}${author.username || 'Unknown'}
+            </div>
+            ${postImage}
+            <span class="ms-2 text-muted">${post.created_at}</span>
+            <div class="card-body">
+              <h5 class="card-title">${post.title || ''}</h5>
+              <p class="card-text">${post.body || ''}</p>
+              <hr>
+              <i class="bi bi-pen"></i> <span>${post.comments_count || 0}</span>
+            </div>
+          </div>
+        `;
+
+        document.getElementById("cards").innerHTML += postHtml;
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching posts:", error);
+    });
+}
+
+function createCommentInput() {
+  const commentBody = document.getElementById("comment-input").value;
+  const token = localStorage.getItem("token");
+  const url = `${baseUrl}/posts/${id}/comments`;
+  const params = { body: commentBody };
+  axios.posts(url, params, {
+    headers: { "Authorization": `Bearer ${token}` }
+  })
+  .then((response) => {
+    getPosts(); // إعادة تحميل البوست مع التعليقات
+  })
+  .catch((error) => {
+    console.error("Error creating comment:", error);
+  });
+}
+
+    // --------------------------
+    // INFINITE SCROLL
+    // --------------------------
+    window.addEventListener("scroll", () => {
+      if (window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 2) {
+        if (currentPage < lastPage) {
+          currentPage++;
+          getPosts(false, currentPage);
+        }
+      }
+    });
+
+    // --------------------------
+    // ADD POST
+    // --------------------------
+    function AddPostForm() {
+      const title = document.getElementById("title-input").value;
+      const body = document.getElementById("body-input").value;
+      const image = document.getElementById("file-input").files[0];
+      const token = localStorage.getItem("token");
+
+      if (!title && !body && !image) {
+        return alertMessage("Post cannot be empty", "warning");
+      }
+
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("body", body);
+      if (image) formData.append("image", image);
+
+      axios.post(`${baseUrl}/posts`, formData, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "multipart/form-data"
+        }
+      })
+        .then(response => {
+          const post = response.data.data;
+          alertMessage("Post created successfully");
+          bootstrap.Modal.getInstance(document.getElementById("addPostModal")).hide();
+
+          const author = post.author;
+          const profileImage = author.profile_image
+            ? `<img src="${author.profile_image}" class="rounded-circle me-2" style="width:30px;height:30px;">`
+            : '';
+          const postImage = post.image
+            ? `<img src="${post.image}" class="card-img-top mb-2">`
+            : '';
+
+          const postHtml = `
+            <div class="card mb-4">
+              <div class="card-header d-flex align-items-center">${profileImage}${author.username}</div>
+              ${postImage ? `<div class="container">${postImage}</div>` : ''}
+              <span class="ms-2 text-muted">${post.created_at}</span>
+              <div class="card-body">
+                <h5 class="card-title">${post.title || ''}</h5>
+                <p class="card-text">${post.body}</p>
+                <hr>
+                <i class="bi bi-pen"></i> <span>${post.comments_count}</span>
+                <span>${post.tags}</span>
+              </div>
+            </div>
+          `;
+          document.getElementById("cards").insertAdjacentHTML("afterbegin", postHtml);
+
+          // Clear inputs
+          document.getElementById("title-input").value = '';
+          document.getElementById("body-input").value = '';
+          document.getElementById("file-input").value = '';
+        })
+        .catch(() => alertMessage("Failed to create post", "danger"));
+    }
+
+    // --------------------------
+    // INITIAL LOAD
+    // --------------------------
+    document.addEventListener("DOMContentLoaded", () => {
+      setUpUi();
+      getPosts();
+    });
+
+    function postClicked(postId) {
+      window.location = `postDetails.html?id=${postId}`;
+    }
+  </script>
+</body>
+</html>
